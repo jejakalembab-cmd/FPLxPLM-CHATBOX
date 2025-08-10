@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPLxPLM Chat</title><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background: #eceff1;
+        transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+        background: #121212;
+        color: white;
+    }
+    header {
+        background: #6200ea;
+        color: #fff;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    header img {
+        height: 30px;
+        margin-right: 8px;
+    }
+    .header-left {
+        display: flex;
+        align-items: center;
+    }
+    .menu-btn {
+        cursor: pointer;
+        width: 30px;
+    }
+    .menu {
+        position: absolute;
+        top: 50px;
+        right: 10px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        display: none;
+        flex-direction: column;
+        border-radius: 8px;
+        overflow: hidden;
+        z-index: 100;
+    }
+    body.dark .menu {
+        background: #333;
+        color: white;
+    }
+    .menu button, .menu a {
+        padding: 10px;
+        border: none;
+        background: none;
+        text-align: left;
+        cursor: pointer;
+        width: 200px;
+        font-size: 14px;
+        transition: background 0.2s;
+        color: inherit;
+        text-decoration: none;
+    }
+    .menu button:hover, .menu a:hover {
+        background: rgba(0,0,0,0.05);
+    }
+    #chat {
+        position: relative;
+        padding: 15px;
+        height: calc(100vh - 150px);
+        overflow-y: auto;
+    }
+    #chat::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: url('bg-chat.png') center/cover no-repeat;
+        filter: blur(6px);
+        z-index: -1;
+    }
+    .msg {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 18px;
+        margin: 6px 0;
+        max-width: 75%;
+        clear: both;
+        word-wrap: break-word;
+    }
+    .mine {
+        background: #c8e6c9;
+        float: right;
+        text-align: right;
+    }
+    .theirs {
+        background: #fff;
+        float: left;
+    }
+    body.dark .mine {
+        background: #2e7d32;
+        color: white;
+    }
+    body.dark .theirs {
+        background: #444;
+        color: white;
+    }
+    footer {
+        display: flex;
+        padding: 10px;
+        background: #fff;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    }
+    body.dark footer {
+        background: #222;
+    }
+    footer input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 18px;
+        outline: none;
+    }
+    footer button {
+        padding: 10px 14px;
+        margin-left: 8px;
+        background: #6200ea;
+        color: white;
+        border: none;
+        border-radius: 18px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    footer button:hover {
+        background: #4a00b8;
+    }
+    #login-screen {
+        padding: 30px;
+        max-width: 300px;
+        margin: 60px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    #login-screen input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+    #login-screen button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 8px;
+        border: none;
+        border-radius: 8px;
+        background: #6200ea;
+        color: white;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    #login-screen button:hover {
+        background: #4a00b8;
+    }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div style="text-align:center; margin-bottom:15px;">
+        <img src="logo.png" alt="Logo" style="max-width:200px;">
+    </div>
+    <h2 style="text-align:center;">Login</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <div style="margin-bottom: 15px; text-align:center;">
+    <iframe width="100%" height="180" 
+        src="https://www.youtube.com/embed/QpZl_LWzaI4?autoplay=1&mute=1" 
+        title="YouTube video player" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+</div>
+
+    <button id="loginBtn">Login</button>
+    <button id="registerBtn" style="background:#03a9f4;">Register</button>
+</div>
+
+<div id="chat-screen" style="display:none;">
+    <header>
+        <div class="header-left">
+            <img src="logo.png" alt="Logo">
+            <div>FPLxPLM Chat</div>
+        </div>
+        <svg class="menu-btn" viewBox="0 0 100 80" width="30" height="30">
+            <rect width="100" height="15" fill="#fff"></rect>
+            <rect y="30" width="100" height="15" fill="#fff"></rect>
+            <rect y="60" width="100" height="15" fill="#fff"></rect>
+        </svg>
+        <div class="menu" id="menu">
+            <button id="changeNickBtn">Change Nickname</button>
+            <button id="profileBtn">Profile</button>
+            <button id="toggleThemeBtn">Toggle Dark/Light Mode</button>
+            <a href="https://t.me/FPLxPLM_bot" target="_blank">Contact Admin</a>
+            <button id="aboutBtn">About App / Help & FAQ</button>
+            <button id="logoutBtn" style="color:red;">Logout</button>
+        </div>
+    </header>
+    <div id="chat"></div>
+    <footer>
+        <input type="text" id="msgInput" placeholder="Type a message...">
+        <button id="sendBtn">Send</button>
+    </footer>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDl1Rt75py9iKPG0Q0oSmZZUvHd2wp4aYg",
+  authDomain: "fplxplm.firebaseapp.com",
+  projectId: "fplxplm",
+  storageBucket: "fplxplm.firebasestorage.app",
+  messagingSenderId: "635917079786",
+  appId: "1:635917079786:web:af414452d251db6de3b393",
+  measurementId: "G-Z64JC9CF6E"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+async function loadWelcomeMessages() {
+    const messages = [
+        { 
+            name: "📢 Sistem", 
+            text: `<div style="font-weight:600; font-size:16px; margin-bottom:4px;">🎉 Selamat datang ke FPLxPLM Chat!</div>
+                   <div style="font-size:14px; line-height:1.4;">
+                   Musim <b>EPL 2025/26</b> telah bermula – pastikan anda:
+                   <ul style="margin:6px 0; padding-left:18px;">
+                   <li>Update pasukan sebelum <b>deadline</b></li>
+                   <li>Semak berita kecederaan pemain</li>
+                   <li>Nikmati sembang santai bersama ahli lain</li>
+                   </ul></div>`
+        },
+        { 
+            name: "📌 Sistem", 
+            text: `<div style="font-weight:600; font-size:16px; margin-bottom:4px;">📜 Peraturan Chat</div>
+                   <div style="font-size:14px; line-height:1.4;">
+                   <ul style="margin:6px 0; padding-left:18px;">
+                   <li>✅ Hormati semua ahli</li>
+                   <li>🚫 Elak spam atau iklan</li>
+                   <li>⚽ Kekal topik berkaitan FPL & EPL</li>
+                   <li>💬 Saling berkongsi tips & berita menarik</li>
+                   </ul></div>`
+        }
+    ];
+
+    try {
+        const resFixtures = await fetch("https://fantasy.premierleague.com/api/fixtures/");
+        const fixtures = await resFixtures.json();
+        const upcomingMatches = fixtures
+            .filter(m => !m.finished && new Date(m.kickoff_time) > new Date())
+            .slice(0, 3);
+            
+const resPlayers = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
+const dataPlayers = await resPlayers.json();
+const teamsMap = {};
+dataPlayers.teams.forEach(t => teamsMap[t.id] = t.name);
+
+if (upcomingMatches.length > 0) {
+    const fixtureText = upcomingMatches.map(m => {
+        const home = teamsMap[m.team_h] || `Team ${m.team_h}`;
+        const away = teamsMap[m.team_a] || `Team ${m.team_a}`;
+        const date = new Date(m.kickoff_time).toLocaleDateString('en-GB');
+        return `${home} vs ${away} (${date})`;
+    }).join(" | ");
+
+    messages.push({ name: "📅 Jadual EPL", text: fixtureText });
+} else {
+    messages.push({ name: "📅 Jadual EPL", text: "Tiada perlawanan akan datang (musim mungkin belum bermula)." });
+}
+
+// Berita injured
+const injuredPlayers = dataPlayers.elements.filter(p => p.status !== "a").slice(0, 2);
+injuredPlayers.forEach(p => {
+    const photoUrl = `https://resources.premierleague.com/premierleague/photos/players/250x250/p${p.photo.replace('.jpg','')}.png`;
+    messages.push({
+        name: "🚨 FPL News",
+        text: `${p.web_name} (${teamsMap[p.team]}) – Status: ${p.status}`,
+        img: photoUrl
+    });
+});
+
+// Top scorer
+const topScorer = [...dataPlayers.elements].sort((a, b) => b.goals_scored - a.goals_scored)[0];
+const scorerImg = `https://resources.premierleague.com/premierleague/photos/players/250x250/p${topScorer.photo.replace('.jpg','')}.png`;
+messages.push({
+    name: "📊 Stat Menarik",
+    text: `${topScorer.web_name} (${teamsMap[topScorer.team]}) – ${topScorer.goals_scored} gol musim ini.`,
+    img: scorerImg
+}); 
+
+    } catch (err) {
+        messages.push({ name: "❌ Sistem", text: "Tidak dapat memuat data FPL." });
+    }
+
+    chatBox.innerHTML = "";
+    messages.forEach(data => {
+        const div = document.createElement("div");
+        div.className = "msg theirs";
+        div.innerHTML = `<b>${data.name}:</b> ${data.text}` + 
+            (data.img ? `<br><img src="${data.img}" style="max-width:100px;border-radius:8px;margin-top:5px;">` : "");
+        chatBox.appendChild(div);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+const loginScreen = document.getElementById("login-screen");
+const chatScreen = document.getElementById("chat-screen");
+const chatBox = document.getElementById("chat");
+const msgInput = document.getElementById("msgInput");
+const menu = document.getElementById("menu");
+
+function formalAlert(message) {
+    window.alert("📢 Makluman Penting:\n\n" + message);
+}
+
+document.querySelector(".menu-btn").onclick = () => {
+    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+};
+
+document.getElementById("toggleThemeBtn").onclick = () => {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+};
+
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+}
+
+document.getElementById("profileBtn").onclick = () => {
+    if (auth.currentUser) {
+        formalAlert(`Email: ${auth.currentUser.email}\nNickname: ${auth.currentUser.displayName || "Belum ditetapkan"}`);
+    }
+};
+
+document.getElementById("aboutBtn").onclick = () => {
+    formalAlert("FPLxPLM Chat App\n\n- Berbual dengan ahli lain\n- Tukar nickname\n- Simpan & padam mesej\n- Dark/Light mode\n- Hubungi Admin melalui Telegram");
+};
+
+document.getElementById("loginBtn").onclick = () => {
+    signInWithEmailAndPassword(auth, email.value, password.value)
+    .catch(e => formalAlert(e.message));
+};
+
+document.getElementById("registerBtn").onclick = () => {
+    createUserWithEmailAndPassword(auth, email.value, password.value)
+    .catch(e => formalAlert(e.message));
+};
+
+document.getElementById("logoutBtn").onclick = () => {
+    signOut(auth);
+};
+
+document.getElementById("changeNickBtn").onclick = async () => {
+    const newNick = prompt("Masukkan nickname baharu:");
+    if (newNick && auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: newNick });
+        formalAlert("Nickname berjaya dikemas kini!");
+    }
+};
+
+document.getElementById("sendBtn").onclick = async () => {
+    if (msgInput.value.trim()) {
+        await addDoc(collection(db, "messages"), {
+            text: msgInput.value,
+            uid: auth.currentUser.uid,
+            name: auth.currentUser.displayName || "User",
+            timestamp: serverTimestamp()
+        });
+        msgInput.value = "";
+    }
+};
+
+onAuthStateChanged(auth, user => {
+    if (user) {
+        loginScreen.style.display = "none";
+        chatScreen.style.display = "block";
+        loadWelcomeMessages();
+        
+        loadMessages();
+    } else {
+        loginScreen.style.display = "block";
+        chatScreen.style.display = "none";
+    }
+});
+
+function loadMessages() {
+    const q = query(collection(db, "messages"), orderBy("timestamp"));
+    onSnapshot(q, snapshot => {
+        chatBox.innerHTML = "";
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const div = document.createElement("div");
+            div.className = "msg " + (data.uid === auth.currentUser.uid ? "mine" : "theirs");
+            div.innerHTML = `<b>${data.name}:</b> ${data.text} 
+            ${data.uid === auth.currentUser.uid ? `<button style="border:none;background:none;cursor:pointer;" onclick="deleteMessage('${docSnap.id}')">🗑</button>` : ""}`;
+            chatBox.appendChild(div);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+window.deleteMessage = async (id) => {
+    await deleteDoc(doc(db, "messages", id));
+};
+</script>
+
+</body>
+</html>
